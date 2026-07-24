@@ -1,55 +1,47 @@
 ```
-# Dependencies
+# Build artifacts and minified files
+dms_solid/static/css/*.min.css
+dms_solid/static/js/*.min.js
+dms_solid/static/fonts/
+dms_solid/static/webfonts/
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.env
-.env.local
-.env.*
-
-# Build artifacts
-dist/
-build/
-*.egg-info/
-
-# Virtual environments
+.Python
+env/
 venv/
 .venv/
-env/
-.ENV/
-
-# Logs
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
 *.log
-
-# OS generated files
 .DS_Store
 Thumbs.db
 
-# Testing
-.coverage
-htmlcov/
-.coverage.*
-.cache
-.pytest_cache/
-.mypy_cache/
+# Django
+*.pot
+*.py[co]
+*.mo
+.django
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+local_settings.py
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*.tmp
-
-# Distribution / packaging
-*.tar.gz
-*.whl
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Coverage
-.coverage*
+*~
 ```
