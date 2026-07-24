@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}ایجاد پروژه{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold"><i class="fas fa-plus-circle me-2"></i> ایجاد پروژه جدید</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">نام پروژه *</label>
+                        <input type="text" class="form-control" id="name" name="name" required 
+                               placeholder="مثال: پروژه وب‌سایت شرکت">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="description" class="form-label">توضیحات</label>
+                        <textarea class="form-control" id="description" name="description" rows="4"
+                                  placeholder="توضیحات پروژه را وارد کنید..."></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> ایجاد پروژه
+                        </button>
+                        <a href="{{ url_for('projects.list_projects') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> بازگشت
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

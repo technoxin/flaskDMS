@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}مشاهده فایل{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('files.list_files') }}">فایل‌ها</a></li>
+                <li class="breadcrumb-item active">{{ file.original_filename }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-file me-2"></i> اطلاعات فایل</h5>
+                <div>
+                    {% if current_user.role.is_admin or file.uploaded_by == current_user.id %}
+                    <a href="{{ url_for('files.edit_file', file_id=file.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit me-1"></i> ویرایش
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('files.download_file', file_id=file.id) }}" class="btn btn-sm btn-success">
+                        <i class="fas fa-download me-1"></i> دانلود
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>نام فایل:</strong>
+                        <p>{{ file.original_filename }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>حجم فایل:</strong>
+                        <p>{{ "%.2f"|format(file.file_size / 1024 / 1024) }} مگابایت</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>نوع فایل:</strong>
+                        <p>{{ file.mime_type }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>تاریخ آپلود:</strong>
+                        <p>{{ file.uploaded_at.strftime('%Y/%m/%d %H:%M:%S') }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>پروژه:</strong>
+                        <p>
+                            {% if file.project %}
+                            <span class="badge bg-info fs-6">{{ file.project.name }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>تعداد دانلود:</strong>
+                        <p><span class="badge bg-primary">{{ file.download_count }}</span></p>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>تگ‌ها:</strong>
+                    <div class="mt-2">
+                        {% for tag in file.tags %}
+                        <span class="badge badge-tag me-1 mb-1" style="background-color: {{ tag.color }}; font-size: 0.9em;">
+                            {{ tag.name }}
+                        </span>
+                        {% endfor %}
+                        {% if not file.tags %}
+                        <span class="text-muted">بدون تگ</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>توضیحات:</strong>
+                    <p class="mt-2">{{ file.description or 'بدون توضیحات' }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>نقش‌های مجاز:</strong>
+                    <div class="mt-2">
+                        {% for role in file.allowed_roles %}
+                        <span class="badge bg-secondary me-1 mb-1">{{ role.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div>
+                    <strong>آپلود کننده:</strong>
+                    <p class="mb-0">{{ file.uploader.full_name }} ({{ file.uploader.username }})</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- OCR Text Section -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-text-width me-2"></i>
+                    متن استخراج شده (OCR)
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if file.ocr_processed and file.ocr_text %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    پردازش OCR با موفقیت انجام شد
+                </div>
+                <div style="max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px;" dir="rtl">
+                    <pre style="white-space: pre-wrap; word-wrap: break-word; margin: 0; font-family: 'Vazirmatn', sans-serif;">{{ file.ocr_text }}</pre>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('search.search_ocr', q=file.original_filename.split('.')[0]) }}" 
+                       class="btn btn-outline-info btn-sm w-100">
+                        <i class="fas fa-search me-2"></i> جستجوی مشابه در OCR
+                    </a>
+                </div>
+                {% elif file.ocr_error %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    خطا در پردازش OCR
+                </div>
+                <p class="text-danger small">{{ file.ocr_error }}</p>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-clock me-2"></i>
+                    در انتظار پردازش OCR
+                </div>
+                <p class="text-muted small">
+                    این فایل هنوز پردازش نشده است یا فرمت آن برای OCR پشتیبانی نمی‌شود.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if current_user.role.is_admin %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0"><i class="fas fa-trash-alt me-2"></i> منطقه خطر</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-danger">حذف فایل به صورت دائمی انجام می‌شود و قابل بازگشت نیست.</p>
+                <form method="POST" action="{{ url_for('files.delete_file', file_id=file.id) }}" 
+                      onsubmit="return confirm('آیا از حذف این فایل اطمینان دارید؟');">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i> حذف فایل
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

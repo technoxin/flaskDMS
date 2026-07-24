@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}تگ‌ها{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold"><i class="fas fa-tags me-2"></i> تگ‌ها</h2>
+    </div>
+</div>
+
+<div class="row">
+    {% if tags %}
+        {% for tag in tags %}
+        <div class="col-md-4 col-lg-3 mb-3">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">{{ tag.name }}</h5>
+                        <small class="text-muted">
+                            <i class="fas fa-file me-1"></i>
+                            {{ tag.files.count() }} فایل
+                        </small>
+                    </div>
+                    <span class="badge" style="background-color: {{ tag.color }}; font-size: 1em;">
+                        رنگ
+                    </span>
+                </div>
+                <div class="card-footer bg-white">
+                    <a href="{{ url_for('search.advanced_search', tags=tag.name) }}" 
+                       class="btn btn-sm btn-outline-primary w-100">
+                        <i class="fas fa-search me-2"></i> جستجوی فایل‌های این تگ
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-tags fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">هیچ تگی وجود ندارد</h4>
+                <p class="text-muted">تگ‌ها هنگام آپلود فایل به صورت خودکار ایجاد می‌شوند</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

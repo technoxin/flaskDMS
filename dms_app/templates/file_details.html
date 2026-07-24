@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}جزئیات فایل - DMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="fas fa-file"></i> {{ file.filename }}</h4>
+                <a href="{{ url_for('view_file', file_id=file.id) }}" class="btn btn-primary" download>
+                    <i class="fas fa-download"></i>
+                    دانلود
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>تاریخ آپلود:</strong> {{ file.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        <p><strong>آپلود کننده:</strong> {{ file.uploader.username }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>حجم فایل:</strong> {{ (file.file_size / 1024)|round(2) }} KB</p>
+                        <p><strong>نوع فایل:</strong> {{ file.mime_type or 'نامشخص' }}</p>
+                    </div>
+                </div>
+                
+                {% if file.project %}
+                <div class="mb-3">
+                    <strong>پروژه:</strong>
+                    <span class="badge bg-info">{{ file.project.name }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <strong>تگ‌ها:</strong>
+                    <div class="mt-2">
+                        {% for tag in file.tags %}
+                        <span class="tag-badge" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if file.description %}
+                <div class="mb-3">
+                    <strong>توضیحات:</strong>
+                    <p class="mt-2">{{ file.description }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="mb-3">
+                    <strong>مجوز دسترسی (نقش‌های مجاز):</strong>
+                    <div class="mt-2">
+                        {% for role in file.allowed_roles %}
+                        <span class="badge bg-secondary">{{ role.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        {% if current_user.is_admin or file.uploader_id == current_user.id %}
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-edit"></i> ویرایش فایل</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('edit_file', file_id=file.id) }}">
+                    <div class="mb-3">
+                        <label for="description" class="form-label">توضیحات</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ file.description or '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="project_id" class="form-label">پروژه</label>
+                        <select class="form-select" id="project_id" name="project_id">
+                            <option value="">بدون پروژه</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}" {% if file.project and file.project.id == project.id %}selected{% endif %}>{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">تگ‌ها</label>
+                        <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto;">
+                            {% for tag in tags %}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="tags" value="{{ tag.id }}" id="edit_tag_{{ tag.id }}" {% if tag in file.tags %}checked{% endif %}>
+                                <label class="form-check-label" for="edit_tag_{{ tag.id }}">
+                                    <span class="tag-badge" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    {% if current_user.is_admin %}
+                    <div class="mb-3">
+                        <label class="form-label">مجوز دسترسی</label>
+                        <div class="border rounded p-2">
+                            {% for role in roles %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="allowed_roles" value="{{ role.id }}" id="edit_role_{{ role.id }}" {% if role in file.allowed_roles %}checked{% endif %}>
+                                <label class="form-check-label" for="edit_role_{{ role.id }}">
+                                    {{ role.name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save"></i>
+                        ذخیره تغییرات
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ویرایش فایل</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('edit_file', file_id=file.id) }}">
+                    <div class="mb-3">
+                        <label for="edit_description" class="form-label">توضیحات</label>
+                        <textarea class="form-control" id="edit_description" name="description" rows="3">{{ file.description or '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="edit_project_id" class="form-label">پروژه</label>
+                        <select class="form-select" id="edit_project_id" name="project_id">
+                            <option value="">بدون پروژه</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}" {% if file.project and file.project.id == project.id %}selected{% endif %}>{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">تگ‌ها</label>
+                        <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto;">
+                            {% for tag in tags %}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="tags" value="{{ tag.id }}" id="edit_tag_{{ tag.id }}" {% if tag in file.tags %}checked{% endif %}>
+                                <label class="form-check-label" for="edit_tag_{{ tag.id }}">
+                                    <span class="tag-badge" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    {% if current_user.is_admin %}
+                    <div class="mb-3">
+                        <label class="form-label">مجوز دسترسی</label>
+                        <div class="border rounded p-2">
+                            {% for role in roles %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="allowed_roles" value="{{ role.id }}" id="edit_role_{{ role.id }}" {% if role in file.allowed_roles %}checked{% endif %}>
+                                <label class="form-check-label" for="edit_role_{{ role.id }}">
+                                    {{ role.name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load projects and tags for the edit form
+    fetch('/api/files')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Files loaded:', data);
+        });
+});
+</script>
+{% endblock %}

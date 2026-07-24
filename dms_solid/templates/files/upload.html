@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}آپلود فایل{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold"><i class="fas fa-upload me-2"></i> آپلود فایل جدید</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <!-- File Upload -->
+                    <div class="mb-4">
+                        <label for="file" class="form-label fw-bold">انتخاب فایل</label>
+                        <div class="border-2 border-dashed rounded p-4 text-center" 
+                             style="border: 2px dashed #ddd; background: #f8f9fa;">
+                            <input type="file" class="form-control form-control-lg" id="file" name="file" required>
+                            <small class="text-muted d-block mt-2">
+                                فرمت‌های مجاز: PDF, PNG, JPG, JPEG, GIF, TIFF, BMP, DOC, DOCX, TXT
+                                <br>حداکثر حجم: 50 مگابایت
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">توضیحات</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" 
+                                  placeholder="توضیحات فایل را وارد کنید..."></textarea>
+                    </div>
+                    
+                    <!-- Project Selection -->
+                    <div class="mb-3">
+                        <label for="project_id" class="form-label">پروژه</label>
+                        <select class="form-select" id="project_id" name="project_id">
+                            <option value="">بدون پروژه</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}">{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Tags -->
+                    <div class="mb-3">
+                        <label for="tags" class="form-label">تگ‌ها</label>
+                        <select class="form-select" id="tags" name="tags" multiple size="5">
+                            {% for tag in tags %}
+                            <option value="{{ tag.name }}">{{ tag.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">برای انتخاب چند تگ، کلید Ctrl را نگه دارید</small>
+                    </div>
+                    
+                    <!-- Allowed Roles -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">دسترسی فایل (نقش‌های مجاز)</label>
+                        <div class="border rounded p-3">
+                            {% for role in roles %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="allowed_roles" value="{{ role.id }}" id="role_{{ role.id }}" checked>
+                                <label class="form-check-label" for="role_{{ role.id }}">
+                                    {{ role.name }} - {{ role.description or '' }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <small class="text-muted">کاربران با نقش‌های انتخاب شده می‌توانند این فایل را مشاهده کنند</small>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-upload me-2"></i> آپلود فایل
+                        </button>
+                        <a href="{{ url_for('files.list_files') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> انصراف
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Sidebar -->
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i> راهنما</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        فایل‌های تصویری و PDF به صورت خودکار OCR می‌شوند
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        متن استخراج شده از فایل قابل جستجو خواهد بود
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        می‌توانید چندین تگ به فایل اختصاص دهید
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        دسترسی فایل را بر اساس نقش کاربران کنترل کنید
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i> توجه</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-0 small">
+                    برای OCR فارسی، باید Tesseract با پشتیبانی از زبان فارسی نصب باشد.
+                    در صورت عدم نصب، فایل بدون پردازش OCR ذخیره می‌شود.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
