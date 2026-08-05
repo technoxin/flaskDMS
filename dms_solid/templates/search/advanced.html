@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}جستجوی پیشرفته{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold"><i class="fas fa-search me-2"></i> جستجوی پیشرفته</h2>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('search.advanced_search') }}">
+            <div class="row g-3">
+                <!-- Filename -->
+                <div class="col-md-6">
+                    <label for="filename" class="form-label">نام فایل</label>
+                    <input type="text" class="form-control" id="filename" name="filename" 
+                           value="{{ filename or '' }}" placeholder="جستجو بر اساس نام فایل...">
+                </div>
+                
+                <!-- Project -->
+                <div class="col-md-6">
+                    <label for="project" class="form-label">پروژه</label>
+                    <select class="form-select" id="project" name="project">
+                        <option value="">همه پروژه‌ها</option>
+                        {% for proj in all_projects %}
+                        <option value="{{ proj.name }}" {% if project_name == proj.name %}selected{% endif %}>
+                            {{ proj.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Tags (Multiple Select) -->
+                <div class="col-md-6">
+                    <label for="tags" class="form-label">تگ‌ها (چند مورد قابل انتخاب است)</label>
+                    <select class="form-select" id="tags" name="tags" multiple size="5">
+                        {% for tag in all_tags %}
+                        <option value="{{ tag.name }}" {% if tag.name in selected_tags %}selected{% endif %}>
+                            {{ tag.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">برای انتخاب چند تگ، کلید Ctrl را نگه دارید</small>
+                </div>
+                
+                <!-- Date Range -->
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label">از تاریخ</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from" 
+                           value="{{ date_from or '' }}">
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label">تا تاریخ</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to" 
+                           value="{{ date_to or '' }}">
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-search me-2"></i> جستجو
+                    </button>
+                    <a href="{{ url_for('search.advanced_search') }}" class="btn btn-outline-secondary px-4">
+                        <i class="fas fa-redo me-2"></i> پاک کردن فیلترها
+                    </a>
+                    <a href="{{ url_for('search.search_ocr') }}" class="btn btn-outline-info px-4">
+                        <i class="fas fa-text-width me-2"></i> جستجو در متن OCR
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Search Results -->
+{% if results %}
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>
+            نتایج جستجو ({{ results.total }} مورد)
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if results.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>نام فایل</th>
+                        <th>پروژه</th>
+                        <th>تگ‌ها</th>
+                        <th>تاریخ آپلود</th>
+                        <th>متن OCR</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in results.items %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-file file-icon ms-3"></i>
+                                <div>
+                                    <strong>{{ file.original_filename }}</strong>
+                                    {% if file.description %}
+                                    <br><small class="text-muted">{{ file.description[:50] }}...</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if file.project %}
+                            <span class="badge bg-info">{{ file.project.name }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% for tag in file.tags %}
+                            <span class="badge badge-tag" style="background-color: {{ tag.color }};">{{ tag.name }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>{{ file.uploaded_at.strftime('%Y/%m/%d %H:%M') }}</td>
+                        <td>
+                            {% if file.ocr_processed %}
+                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>پردازش شده</span>
+                            {% elif file.ocr_error %}
+                            <span class="badge bg-danger"><i class="fas fa-times me-1"></i>خطا</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark">در انتظار</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('files.view_file', file_id=file.id) }}" class="btn btn-outline-primary" title="مشاهده">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('files.download_file', file_id=file.id) }}" class="btn btn-outline-success" title="دانلود">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if results.pages > 1 %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if results.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ results.prev_num }}&filename={{ filename }}&project={{ project_name }}&date_from={{ date_from }}&date_to={{ date_to }}&tags={{ selected_tags|join('&tags=') }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in range(1, results.pages + 1) %}
+                    {% if page_num == results.page %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% elif page_num == 1 or page_num == results.pages or (page_num >= results.page - 2 and page_num <= results.page + 2) %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_num }}&filename={{ filename }}&project={{ project_name }}&date_from={{ date_from }}&date_to={{ date_to }}&tags={{ selected_tags|join('&tags=') }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                    {% elif page_num == results.page - 3 or page_num == results.page + 3 %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if results.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ results.next_num }}&filename={{ filename }}&project={{ project_name }}&date_from={{ date_from }}&date_to={{ date_to }}&tags={{ selected_tags|join('&tags=') }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-4x text-muted mb-3"></i>
+            <p class="text-muted">هیچ نتیجه‌ای یافت نشد.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-search fa-5x text-muted mb-3"></i>
+    <h4 class="text-muted">لطفاً معیارهای جستجو را وارد کنید</h4>
+    <p class="text-muted">می‌توانید بر اساس نام فایل، پروژه، تگ‌ها و بازه تاریخ جستجو کنید</p>
+</div>
+{% endif %}
+{% endblock %}
